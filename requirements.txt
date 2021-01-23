@@ -1,0 +1,6 @@
+numpy
+pandas
+image-slicer
+scikit-image
+openslide-python
+tensorflow
