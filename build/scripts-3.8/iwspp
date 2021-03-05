@@ -1,0 +1,51 @@
+#!python
+
+from iwspp.flows import slide, filter, tiles
+import argparse
+
+
+parser = argparse.ArgumentParser(description="Preprocess pathology slides for image anslysis.")
+parser.add_argument('-p', '--path', required=True, type=str,
+                    help="Full path to the folder containing your slide files")
+parser.add_argument('-t', '--type', required=True, type=int,
+                    help="Type of analysis to perform: 1:convert 2:mask 3:tiles")
+parser.add_argument('-f', '--format', default="svs", required=False, type=str,
+                    help="The type of slide files, should all be the same, defaults to .svs")
+parser.add_argument('-s', '--save', default=".jpg", required=False,type=str,
+                    help="The format to save the processed image, defaults to .jgp")
+parser.add_argument('-c', '--alpha', default=70, required=False, type=float,
+                    help="Tissue perentage threshold for selecting tiles, defaults to 70")
+args = parser.parse_args()
+########################################################################################################
+
+# TO Do: Add staining in the argument
+
+## Set arguments
+path_sl = args.path
+in_format = args.format
+out_format = args.save
+threshold_t = args.alpha
+type_analysis = args.type
+########################################################################################################
+
+# Convert to smaller images
+path_img = slide.multi_slides_to_images(path_sl, in_format)
+
+if type_analysis >= 2:
+    # Mask non-tissue area
+    mask_percent, path_filter = filter.multi_apply_filters_to_images(path_img, out_format)
+
+    if type_analysis == 3:
+        # Get tiles
+        tiles.multi_get_tiles_score_save(path_filter, out_format, tp_threshold=threshold_t)
+
+# path_sl = "ige"
+# in_format = ".svs"
+# out_format = ".jgp"
+# threshold_t = 80
+
+
+
+
+
+

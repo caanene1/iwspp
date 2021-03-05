@@ -1,0 +1,10 @@
+numpy
+pandas
+matplotlib
+spams
+image-slicer
+Pillow
+scikit-image
+openslide-python
+opencv-python
+tensorflow

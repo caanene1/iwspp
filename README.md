@@ -1,40 +1,26 @@
-# ACSNI
-Pathology slide processor for DIpat.
-This tool is built in python3 with openslide backend.
+# iwspp
+Preprocessing workflow for pathology slides
 
-# To clone the source repository 
-git clone https://github.com/caanene1/iwsprepro
-
-# Installing the requirements 
-The best way to get all the dependencies for this tool is to install the "requirements.txt" included in the root directory.
-
-On  Linux and Mac OS::
-pip install -r requirements.txt
-
-On Windows OS::
-python -m pip install -U pip setuptools
-
-# Input
+Pathology images are heterogeneous with widely varying staining intensities, tissue content 
+and background artefacts. Current CNN require high-quality examples to achieve good results. 
+iwspp implements several preprocessing workflows that can be generalised to these slides
 
 
+# Installation and running the tool
+The best way to get iwspp along with all the dependencies is to install the release with python package installer (pip)
 
-# Running the tool
-To see input parameters use:
+```pip install iwspp```
+or 
+```pip install /iwspp/dist/iwspp-1.0.0-py3-none-any.whl```
+This will add iwspp command line argument with -t for switching.
 
-python main.py -help
+High number >2 -t options require the lower level analysis to work if starting scratch.
 
-```main.py [-h] [-m MAD] [-b BOOT] [-p LP] [-f FULL]```
+| Options | Context | Usage |
+| ---    | --- | --- |
+| t = 1 | SVS to small size images (.jpeg .png) | ```iwspp -t 1``` |
+| t = 2 | Tissue segmentation | ```iwspp -t 2``` | 
+| t = 3 | Tissue tilling | ```iwspp -t 3``` |
+| t = 4 | Stain normalisation | ```iwspp -t 4``` |
 
-```optional arguments:
-  -h,       --help        show this help message and exit
-  -m MAD,   --mad MAD     Minimum median absolute deviance for geneSets
-  -b BOOT,  --boot BOOT   Number of ensemble models to run
-  -p LP,    --lp LP       Percentage of gene set for model layers
-
-
-```
-
-```python ACSNI.py -i expression.csv -t GeneSets.csv```
-
-# Examples 
-Example files are included in the "example data" folder.
+Utility functions can be imported using conventional python system like ```from iwspp.Normalize import Macenko```
