@@ -96,7 +96,7 @@ def get_tiles_score_save(path, save_all=False, tp_threshold=80):
     s_tiles = image_slicer.join(s_tiles)
     # Remove the alpha channel if any
     s_tiles = s_tiles.convert("RGB")
-    s_tiles.save("slice_" + "annotation_image.jpg")
+    s_tiles.save(n_path + "slice_" + "annotation_image.jpg")
 
     # Construct annotation table
     stats_s_tiles = pd.DataFrame()
@@ -113,6 +113,7 @@ def get_tiles_score_save(path, save_all=False, tp_threshold=80):
     image_slicer.save_tiles(l_tiles, directory=n_path,
                             prefix="slice", format="JPEG")
 
+
 def multi_get_tiles_score_save(path, sl_format, tp_threshold=80):
     """
     Apply a set of filters to image folder
@@ -124,7 +125,6 @@ def multi_get_tiles_score_save(path, sl_format, tp_threshold=80):
     """
     timer = Time()
 
-    # List the files
     files = os.listdir(path)
     print("Tilling {} images".format(len(files)))
 

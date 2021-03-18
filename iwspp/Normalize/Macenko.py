@@ -5,11 +5,8 @@ Macenko et al., 2009, pp. 1107–1110.
 
 from __future__ import division
 import numpy as np
+import os
 import iwspp.flows.util as ut
-
-#I = ut.read_image("data/i1.png")
-#I3 = ut.read_image("data/n1.png")
-#I4 = ut.read_image("data/d2.png")
 
 
 def get_stain_matrix(I, beta=0.15, alpha=1):
@@ -83,18 +80,44 @@ class Normalizer(object):
         H = np.exp(-1 * H)
         return H
 
-#YT = Normalizer()
-#YT.fit(I)
+def multi_apply_normalisation_to_images(path, nn_path, sl_format):
+  """
+  Apply normalisation to a set of slides
+  Args:
+    path: The image folder.
+    nn_path: The path to standard.
+    sl_format: The format of the image to normalise.
 
-#I3d = YT.transform(I3)
-#I4d = YT.transform(I4)
+  Returns:
+    Saves to normalisation folder
+  """
 
-#I3r = YT.hematoxylin(I3)
-#I4r = YT.hematoxylin(I4)
+  timer = ut.Time()
+  sd = ut.read_image(nn_path)
+  sd_class = Normalizer()
+  sd_class.fit(sd)
 
+  n_path = os.path.join(path, "normalised")
+  n_path1 = os.path.join(path, "haematoxylin")
+  print(n_path)
 
-#ut.display_img(I4d)
-#ut.display_img(I3d)
+  files = [f for f in os.listdir(path) if f.endswith(sl_format)]
+  print("Applying filters to {} image".format(len(files)))
 
-#ut.display_img(I4r)
-#ut.display_img(I3r)
+  if not os.path.exists(n_path):
+    os.makedirs(n_path)
+    os.makedirs(n_path1)
+
+  for i in files:
+    sl = ut.read_image(os.path.join(path, i))
+    sl1 = sd_class.transform(sl)
+    sl2 = sd_class.hematoxylin(sl)
+
+    sl1 = ut.np_to_pil(sl1)
+    sl2 = ut.np_to_pil(sl2)
+
+    sl1.save(os.path.join(n_path, i))
+    sl2.save(os.path.join(n_path1, i))
+
+  timer.elapsed_display()
+  return

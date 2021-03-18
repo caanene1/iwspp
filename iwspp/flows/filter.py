@@ -26,9 +26,11 @@ def filter_grays(np_img, tolerance=15, output_type="bool"):
   if output_type == "bool":
     pass
   elif output_type == "float":
-    result = result.astype(float)
+    result = float(result)
+    # result = result.astype(float)
   else:
-    result = result.astype("uint8") * 255
+    result = int(result)
+    #result = result.astype("uint8") * 255
   util.np_info(result, "Filter Grays", t.elapsed())
   return result
 
@@ -63,45 +65,11 @@ def apply_image_filters(path, fps):
   mask_not_gray = filter_grays(rgb)
   rgb_not_gray = util.mask_rgb(rgb, mask_not_gray)
 
-  ## Save masked
   mask_percentage = mask_percent(rgb_not_gray)
   pil_img = util.np_to_pil(rgb_not_gray)
+
   pil_img.save(fps)
   return mask_percentage
-
-
-def multi_apply_filters_to_images(path, sl_format):
-  """
-  Apply a set of filters to image folder
-  Args:
-    path: The image folder.
-    sl_format: The file format of the images.
-  Returns:
-    Tuple of 1) Dictionary of mask percentage and and path to filtered images
-  """
-  timer = util.Time()
-  info = dict()
-  # Set new path
-  n_path = os.path.join(path, "filtered")
-
-
-  # List the files
-  files = os.listdir(path)
-  print("Applying filters to {} images".format(len(files)))
-
-  if not os.path.exists(n_path):
-    os.makedirs(n_path)
-
-  key = 0
-  for i in files:
-    key += 1
-    if i.endswith(sl_format):
-      sl = str(os.path.join(path, i))
-      fps = os.path.join(n_path, i)
-      mask_per = apply_image_filters(sl, fps)
-      info[key] = sl + "_" + fps + "==" + str(mask_per)
-  timer.elapsed_display()
-  return info, n_path
 
 
 def tissue_percent(np_img):
@@ -181,3 +149,40 @@ def filter_hsv_to_v(hsv):
   v = hsv[:, :, 2]
   v = v.flatten()
   return v
+
+
+def multi_apply_filters_to_images(path, sl_format):
+  """
+  Apply a set of filters to image folder
+  Args:
+    path: The image folder.
+    sl_format: The file format of the images.
+  Returns:
+    Tuple of 1) Dictionary of mask percentage and and path to filtered images
+  """
+
+  timer = util.Time()
+  info = dict()
+  n_path = os.path.join(path, "filtered")
+  print(n_path)
+
+  files = [f for f in os.listdir(path) if f.endswith(sl_format)]
+  print("Applying filters to {} image".format(len(files)))
+
+  if not os.path.exists(n_path):
+    os.makedirs(n_path)
+
+ # Convert this to enumerate to get the index and the value
+  key = 0
+  #i = files[0]
+  for i in files:
+    key += 1
+    sl = os.path.join(path, i)
+    fps = os.path.join(n_path, i)
+    mask_per = apply_image_filters(sl, fps)
+
+    info[key] = sl + "_" + fps + "==" + str(mask_per)
+
+  timer.elapsed_display()
+  return info, n_path
+

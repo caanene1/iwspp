@@ -38,7 +38,7 @@ def open_image(im):
   return image
 
 
-def slide_to_image(sl, path, s=64):
+def slide_to_image(sl, path, s=32):
   """
   Convert slide image to jpg or png.
   Args:
@@ -51,7 +51,7 @@ def slide_to_image(sl, path, s=64):
   img.save(path, "JPEG")
 
 
-def slide_to_scaled_pil(s_obj, s=64):
+def slide_to_scaled_pil(s_obj, s=32):
   """
   Convert OpenSlide object to a scaled PIL image.
   Args:
@@ -64,7 +64,7 @@ def slide_to_scaled_pil(s_obj, s=64):
   o_w, o_h = s_obj.dimensions
 
   if s is None:
-    scale = 64
+    scale = 32
   else:
     scale = s
   n_w, n_h = math.floor(o_w / scale), math.floor(o_h / scale)
@@ -112,25 +112,24 @@ def slide_info(s_obj):
   print("Objective power: {}".format(s_obj.properties[openslide.PROPERTY_NAME_OBJECTIVE_POWER]))
 
 
-def multi_slides_to_images(path, sl_format):
+def multi_slides_to_images(path, sl_format, s=32):
   """
   Convert slides to images from folder to folder.
   Control the images with "sl_format"
   """
   timer = Time()
-  # Set new path
+
   n_path = os.path.join(path, "converted")
   if not os.path.exists(n_path):
     os.makedirs(n_path)
-  # List the files
+
   files = os.listdir(path)
-  print("Converting {} slides to images".format(len(files)))
-  # Convert recursively
+
   for i in files:
     if i.endswith(sl_format):
       sl = open_slide(str(os.path.join(path, i)))
       fps = os.path.join(n_path, (i + ".jpg"))
-      slide_to_image(sl, fps)
+      slide_to_image(sl, fps, s=s)
   timer.elapsed_display()
   return n_path
 

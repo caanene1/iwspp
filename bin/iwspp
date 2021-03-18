@@ -1,6 +1,8 @@
 #!/usr/bin/env python
-
-from iwspp.flows import slide, filter, tiles
+from iwspp.flows.filter import multi_apply_filters_to_images
+from iwspp.flows.tiles import multi_get_tiles_score_save
+from iwspp.flows.slide import multi_slides_to_images
+from iwspp.Normalize.Macenko import multi_apply_normalisation_to_images
 import argparse
 
 
@@ -11,6 +13,8 @@ parser.add_argument('-t', '--type', required=True, type=int,
                     help="Type of analysis to perform: 1:convert 2:mask 3:tiles")
 parser.add_argument('-f', '--format', default="svs", required=False, type=str,
                     help="The type of slide files, should all be the same, defaults to .svs")
+parser.add_argument('-z', '--sdf', default="/Users/chineduanene/Documents/GitHub/iwspp/data/i1.png",
+                    required=False, type=str, help="The full path to standard image")
 parser.add_argument('-s', '--save', default=".jpg", required=False,type=str,
                     help="The format to save the processed image, defaults to .jgp")
 parser.add_argument('-c', '--alpha', default=70, required=False, type=float,
@@ -18,31 +22,34 @@ parser.add_argument('-c', '--alpha', default=70, required=False, type=float,
 args = parser.parse_args()
 ########################################################################################################
 
-# TO Do: Add staining in the argument
-
-## Set arguments
 path_sl = args.path
 in_format = args.format
 out_format = args.save
 threshold_t = args.alpha
+standard_image = args.sdf
 type_analysis = args.type
 ########################################################################################################
 
-# Convert to smaller images
-path_img = slide.multi_slides_to_images(path_sl, in_format)
+if type_analysis == 1:
+    path_img = multi_slides_to_images(path_sl, in_format, s=32)
 
-if type_analysis >= 2:
-    # Mask non-tissue area
-    mask_percent, path_filter = filter.multi_apply_filters_to_images(path_img, out_format)
+elif type_analysis == 2:
+    mask_percent, path_filter = multi_apply_filters_to_images(path_sl, out_format)
 
-    if type_analysis == 3:
-        # Get tiles
-        tiles.multi_get_tiles_score_save(path_filter, out_format, tp_threshold=threshold_t)
+elif type_analysis == 3:
+    multi_get_tiles_score_save(path_sl, out_format, tp_threshold=threshold_t)
 
-# path_sl = "ige"
-# in_format = ".svs"
-# out_format = ".jgp"
-# threshold_t = 80
+elif type_analysis == 4:
+    multi_apply_normalisation_to_images(path_sl, standard_image, out_format)
+
+else:
+    print("Please, give the right -t parameter")
+
+
+
+
+
+
 
 
 
