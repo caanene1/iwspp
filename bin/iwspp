@@ -30,6 +30,16 @@ standard_image = args.sdf
 type_analysis = args.type
 ########################################################################################################
 
+path_sl = "data/TCGA_imj"
+in_format = "svs"
+out_format = ".jpg"
+path_filter = "data/TCGA_imj/converted"
+
+path_sl = "/Users/chineduanene/Documents/GitHub/iwspp/data/TCGA_imj/converted/filtered"
+threshold_t = 70
+standard_image = "/Users/chineduanene/Documents/GitHub/iwspp/data/i1.png"
+
+
 if type_analysis == 1:
     path_img = multi_slides_to_images(path_sl, in_format, s=32)
 
@@ -37,10 +47,11 @@ elif type_analysis == 2:
     mask_percent, path_filter = multi_apply_filters_to_images(path_sl, out_format)
 
 elif type_analysis == 3:
-    multi_get_tiles_score_save(path_sl, out_format, tp_threshold=threshold_t)
+    ## Sort this out to combine both png and jpg
+    multi_apply_normalisation_to_images(path_sl, standard_image, out_format)
 
 elif type_analysis == 4:
-    multi_apply_normalisation_to_images(path_sl, standard_image, out_format)
+    multi_get_tiles_score_save(path_sl, out_format, tp_threshold=threshold_t)
 
 else:
     print("Please, give the right -t parameter")
