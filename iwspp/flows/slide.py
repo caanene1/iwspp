@@ -38,7 +38,7 @@ def open_image(im):
   return image
 
 
-def slide_to_image(sl, path, s=32):
+def slide_to_image(sl, path, s=64):
   """
   Convert slide image to jpg or png.
   Args:
@@ -49,9 +49,10 @@ def slide_to_image(sl, path, s=32):
   img, o_w, o_h, n_w, n_h = slide_to_scaled_pil(sl, s)
   print("Saving to {}".format(path))
   img.save(path, "JPEG")
+  return
 
 
-def slide_to_scaled_pil(s_obj, s=32):
+def slide_to_scaled_pil(s_obj, s=64):
   """
   Convert OpenSlide object to a scaled PIL image.
   Args:
@@ -81,7 +82,8 @@ def slide_to_scaled_np_image(sl):
   Args:
     sl: The slide.
   Returns:
-    Tuple consisting of scaled-down NumPy image, original width, original height, new width, and new height.
+    Tuple consisting of scaled-down NumPy image, original width,
+    original height, new width, and new height.
   """
   img, o_w, o_h, n_w, n_h = slide_to_scaled_pil(sl)
   np_img = util.pil_to_np_rgb(img)
@@ -97,6 +99,7 @@ def show_slide(sl, s):
   """
   pil_img = slide_to_scaled_pil(sl, s)[0]
   pil_img.show()
+  return
 
 
 def slide_info(s_obj):
@@ -110,9 +113,10 @@ def slide_info(s_obj):
   print("Level downsamples: {}".format(s_obj.level_downsamples))
   print("Dimensions: {}".format(s_obj.dimensions))
   print("Objective power: {}".format(s_obj.properties[openslide.PROPERTY_NAME_OBJECTIVE_POWER]))
+  return
 
 
-def multi_slides_to_images(path, sl_format, s=32):
+def multi_slides_to_images(path, sl_format, s=64):
   """
   Convert slides to images from folder to folder.
   Control the images with "sl_format"
@@ -131,7 +135,7 @@ def multi_slides_to_images(path, sl_format, s=32):
       fps = os.path.join(n_path, (i + ".jpg"))
       slide_to_image(sl, fps, s=s)
   timer.elapsed_display()
-  return n_path
+  return
 
 
 def open_image_np(filename):

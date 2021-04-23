@@ -1,4 +1,5 @@
 import numpy as np
+import pandas as pd
 import os
 import skimage.color as sk_color
 from iwspp.flows import util, slide
@@ -103,8 +104,10 @@ def filter_rgb_to_hsv(np_img, display_np_info=True):
 
 def filter_hsv_to_h(hsv, output_type="int", display_np_info=True):
   """
-  Obtain hue values from HSV NumPy array as a 1-dimensional array. If output as an int array, the original float
-  values are multiplied by 360 for their degree equivalents for simplicity. For more information, see
+  Obtain hue values from HSV NumPy array as a 1-dimensional array.
+  If output as an int array, the original float
+  values are multiplied by 360 for their degree equivalents for simplicity.
+  For more information, see
   https://en.wikipedia.org/wiki/HSL_and_HSV
   Args:
     hsv: HSV image as a NumPy array.
@@ -158,7 +161,7 @@ def multi_apply_filters_to_images(path, sl_format):
     path: The image folder.
     sl_format: The file format of the images.
   Returns:
-    Tuple of 1) Dictionary of mask percentage and and path to filtered images
+    Tuple of 1) Dictionary of mask percentage and path to filtered images
   """
 
   timer = util.Time()
@@ -172,17 +175,15 @@ def multi_apply_filters_to_images(path, sl_format):
   if not os.path.exists(n_path):
     os.makedirs(n_path)
 
- # Convert this to enumerate to get the index and the value
-  key = 0
-  #i = files[0]
-  for i in files:
-    key += 1
+  for key, i in enumerate(files):
     sl = os.path.join(path, i)
     fps = os.path.join(n_path, i)
     mask_per = apply_image_filters(sl, fps)
-
     info[key] = sl + "_" + fps + "==" + str(mask_per)
 
+  info = pd.DataFrame(list(info.items()), columns=["key", "Mask"])
+  info.to_csv(os.path.join(n_path, "Mask_percent.csv"), index=False)
+
   timer.elapsed_display()
-  return info, n_path
+  return
 

@@ -3,6 +3,8 @@ from iwspp.flows.filter import multi_apply_filters_to_images
 from iwspp.flows.tiles import multi_get_tiles_score_save
 from iwspp.flows.slide import multi_slides_to_images
 from iwspp.Normalize.Macenko import multi_apply_normalisation_to_images
+from iwspp.flows.movesf import move_single_folder
+import sys
 import argparse
 
 
@@ -10,7 +12,8 @@ parser = argparse.ArgumentParser(description="Preprocess pathology slides for im
 parser.add_argument('-p', '--path', required=True, type=str,
                     help="Full path to the folder containing your slide files")
 parser.add_argument('-t', '--type', required=True, type=int,
-                    help="Type of analysis to perform: 1:convert 2:mask 3:tiles")
+                    help="Type of analysis to perform: 1:convert 2:mask 3:tiles 4:normalise "
+                         "5:move files")
 parser.add_argument('-f', '--format', default="svs", required=False, type=str,
                     help="The type of slide files, should all be the same, defaults to .svs")
 parser.add_argument('-z', '--sdf', default="/Users/chineduanene/Documents/GitHub/iwspp/data/i1.png",
@@ -19,6 +22,8 @@ parser.add_argument('-s', '--save', default=".jpg", required=False,type=str,
                     help="The format to save the processed image, defaults to .jgp")
 parser.add_argument('-c', '--alpha', default=70, required=False, type=float,
                     help="Tissue perentage threshold for selecting tiles, defaults to 70")
+parser.add_argument('-np', '--new', default=None, type=str,
+                    help="New folder to merge images files, creates if not presents.")
 args = parser.parse_args()
 ########################################################################################################
 
@@ -28,30 +33,25 @@ out_format = args.save
 threshold_t = args.alpha
 standard_image = args.sdf
 type_analysis = args.type
+new_path = args.new
 ########################################################################################################
 
-path_sl = "data/TCGA_imj"
-in_format = "svs"
-out_format = ".jpg"
-path_filter = "data/TCGA_imj/converted"
-
-path_sl = "/Users/chineduanene/Documents/GitHub/iwspp/data/TCGA_imj/converted/filtered"
-threshold_t = 70
-standard_image = "/Users/chineduanene/Documents/GitHub/iwspp/data/i1.png"
-
-
 if type_analysis == 1:
-    path_img = multi_slides_to_images(path_sl, in_format, s=32)
+    multi_slides_to_images(path_sl, in_format, s=64)
 
 elif type_analysis == 2:
-    mask_percent, path_filter = multi_apply_filters_to_images(path_sl, out_format)
+    multi_apply_filters_to_images(path_sl, out_format)
 
 elif type_analysis == 3:
-    ## Sort this out to combine both png and jpg
-    multi_apply_normalisation_to_images(path_sl, standard_image, out_format)
+    multi_get_tiles_score_save(path_sl, out_format, tp_threshold=threshold_t)
 
 elif type_analysis == 4:
-    multi_get_tiles_score_save(path_sl, out_format, tp_threshold=threshold_t)
+    multi_apply_normalisation_to_images(path_sl, standard_image, out_format)
+
+elif type_analysis == 5:
+    if new_path is None:
+        sys.exit("ERROR: Please, provide destination folder")
+    move_single_folder(path_sl, new_path)
 
 else:
     print("Please, give the right -t parameter")

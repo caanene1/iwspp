@@ -98,7 +98,7 @@ def multi_apply_normalisation_to_images(path, nn_path, sl_format):
   sd_class.fit(sd)
 
   n_path = os.path.join(path, "normalised")
-  n_path1 = os.path.join(path, "haematoxylin")
+  # n_path1 = os.path.join(path, "haematoxylin")
   print(n_path)
 
   files = [f for f in os.listdir(path) if f.endswith(sl_format)]
@@ -106,18 +106,18 @@ def multi_apply_normalisation_to_images(path, nn_path, sl_format):
 
   if not os.path.exists(n_path):
     os.makedirs(n_path)
-    os.makedirs(n_path1)
+    # os.makedirs(n_path1)
 
   for i in files:
     sl = ut.read_image(os.path.join(path, i))
     sl1 = sd_class.transform(sl)
-    sl2 = sd_class.hematoxylin(sl)
+    # sl2 = sd_class.hematoxylin(sl)
 
     sl1 = ut.np_to_pil(sl1)
-    sl2 = ut.np_to_pil(sl2)
+    # sl2 = ut.np_to_pil(sl2)
 
     sl1.save(os.path.join(n_path, i))
-    sl2.save(os.path.join(n_path1, i))
+    # sl2.save(os.path.join(n_path1, i))
 
   timer.elapsed_display()
   return
