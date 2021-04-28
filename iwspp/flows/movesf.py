@@ -45,9 +45,9 @@ def move_single_folder(o_path, n_path, target="selectedTiles", f_format=".jpg",
 
 def clean_folder(path, target):
     # Decide later if this is worth keeping, probably not needed
-    inputf = pd.read_csv("/Users/chineduanene/Documents/WorkSpace/CNN_pathology/Data/CNN_lables.csv")
+    inputf = pd.read_csv("/Users/chineduanene/Documents/WorkSpace/CNN_pathology/Data/CNN_notNorm/lables.csv")
     keep = inputf["Name"].values
-    path = "/Users/chineduanene/Documents/WorkSpace/CNN_pathology/Data/merged"
+    path = "/Users/chineduanene/Documents/WorkSpace/CNN_pathology/Data/CNN_notNorm/images"
     files = os.listdir(path)
 
 

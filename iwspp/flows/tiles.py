@@ -63,7 +63,7 @@ def get_tiles_score_save(path, save_path, save_all=False, tp_threshold=80):
         if not os.path.exists(n_path2):
             os.makedirs(n_path2)
         image_slicer.save_tiles(tiles, directory=n_path2,
-                                prefix="slice", format="JPEG")
+                                prefix=b_name + "_slice", format="JPEG")
 
     for i in range(len(tiles)):
         t_n = "0" + str(tiles[i].column) + "_0" + str(tiles[i].row)
@@ -112,7 +112,7 @@ def get_tiles_score_save(path, save_path, save_all=False, tp_threshold=80):
 
     # Save
     image_slicer.save_tiles(l_tiles, directory=n_path,
-                            prefix="slice", format="JPEG")
+                            prefix=b_name + "_slice", format="JPEG")
     return
 
 def multi_get_tiles_score_save(path, sl_format, tp_threshold=80):
