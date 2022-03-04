@@ -1,0 +1,9 @@
+Pillow
+image-slicer
+matplotlib
+numpy
+opencv-python
+openslide-python
+pandas
+scikit-image
+spams

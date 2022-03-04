@@ -6,10 +6,9 @@ with open("README.md", "r") as fh:
 with open("requirements.txt") as rq:
     install_requires = rq.read()
 
-
 setuptools.setup(
     name="iwspp",
-    version="1.0.0",
+    version="1.0.1",
     scripts=["bin/iwspp"],
     author="Chinedu A. Anene",
     author_email="caanenedr@outlook.com",
@@ -25,7 +24,7 @@ setuptools.setup(
         "Operating System :: OS Independent"
     ],
     install_requires=install_requires,
-    python_requires='>=3.6',
+    python_requires='>=3.7',
 )
 
 # Build this package with >> python3 setup.py sdist bdist_wheel

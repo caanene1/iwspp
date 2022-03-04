@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!python
 from iwspp.flows.filter import multi_apply_filters_to_images
 from iwspp.flows.tiles import multi_get_tiles_score_save
 from iwspp.flows.slide import multi_slides_to_images
