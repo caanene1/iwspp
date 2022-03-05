@@ -2,7 +2,8 @@ import numpy as np
 import pandas as pd
 import os
 import skimage.color as sk_color
-from iwspp.flows import util, slide
+from PIL import Image
+from iwspp.flows import util
 
 
 def filter_grays(np_img, tolerance=15, output_type="bool"):
@@ -61,7 +62,7 @@ def apply_image_filters(path, fps):
   Returns:
     Mask percentage
   """
-  img = slide.open_image(path)
+  img = Image.open(path)
   rgb = util.pil_to_np_rgb(img)
   mask_not_gray = filter_grays(rgb)
   rgb_not_gray = util.mask_rgb(rgb, mask_not_gray)

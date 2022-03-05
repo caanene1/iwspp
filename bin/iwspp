@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 from iwspp.flows.filter import multi_apply_filters_to_images
 from iwspp.flows.tiles import multi_get_tiles_score_save
-from iwspp.flows.slide import multi_slides_to_images
+from iwspp.flows.slide import multi_slide_to_image
 from iwspp.Normalize.Macenko import multi_apply_normalisation_to_images
 from iwspp.flows.movesf import move_single_folder
 import sys
@@ -40,7 +40,10 @@ scale_factor = args.scale
 ########################################################################################################
 
 if type_analysis == 1:
-    multi_slides_to_images(path_sl, in_format, s=scale_factor)
+    multi_slide_to_image(path = path_sl,
+                         tf = in_format,
+                         f = "slide", # Fixed for this package
+                         s = scale_factor)
 
 elif type_analysis == 2:
     multi_apply_filters_to_images(path_sl, out_format)

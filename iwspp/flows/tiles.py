@@ -4,7 +4,7 @@ import copy
 import pandas as pd
 from PIL import ImageOps, ImageDraw
 from iwspp.flows import util, stain, filter
-from iwspp.flows.slide import open_image
+from PIL import Image
 from iwspp.flows.util import Time
 
 
@@ -17,7 +17,7 @@ def get_num_tiles(path):
     N tiles.
   """
 
-  r_si, c_si = open_image(path).size
+  r_si, c_si = Image.open(path).size
 
   r_t_si = r_si * 10 // 1041
   c_t_si = c_si * 10 // 1041

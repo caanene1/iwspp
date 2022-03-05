@@ -61,6 +61,7 @@ def np_info(np_arr, name=None, elapsed=None):
     is_binary = "T" if (np.unique(np_arr).size == 2) else "F"
     print("%-20s | Time: %-14s Min: %6.2f  Max: %6.2f  Mean: %6.2f  Binary: %s  Type: %-7s Shape: %s" % (
       name, str(elapsed), min, max, mean, is_binary, np_arr.dtype, np_arr.shape))
+  return
 
 
 def display_img(np_img):
@@ -206,6 +207,17 @@ def patch_grid(ims, width=5, sub_sample=None, rand=False, save_name=None):
         plt.savefig(save_name)
     plt.show()
 
+def open_image_np(filename):
+  """
+  Open an image as an RGB NumPy array.
+  (accepted *.jpg, *.png, etc)
+  Args:
+    filename: Name of the image file.
+  returns:
+    A NumPy representing an RGB image.
+  """
+  image = Image.open(filename)
+  return pil_to_np_rgb(image)
 
 ######################################
 
