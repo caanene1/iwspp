@@ -12,15 +12,8 @@ def pil_to_np_rgb(img):
   """
   Convert a PIL Image to a NumPy array.
   As: RGB PIL (w, h) -> NumPy (h, w, 3).
-  Args:
-    img: The PIL Image.
-  Returns:
-    The rgb NumPy array.
   """
-  t = Time()
-  rgb = np.asarray(img)
-  np_info(rgb, "RGB", t.elapsed())
-  return rgb
+  return np.asarray(img)
 
 def np_to_pil(np_img):
   """
@@ -61,6 +54,7 @@ def np_info(np_arr, name=None, elapsed=None):
     is_binary = "T" if (np.unique(np_arr).size == 2) else "F"
     print("%-20s | Time: %-14s Min: %6.2f  Max: %6.2f  Mean: %6.2f  Binary: %s  Type: %-7s Shape: %s" % (
       name, str(elapsed), min, max, mean, is_binary, np_arr.dtype, np_arr.shape))
+  return
 
 
 def display_img(np_img):
@@ -81,13 +75,8 @@ def mask_rgb(rgb, mask):
   Args:
     rgb: RGB image as a NumPy array.
     mask: An image mask to determine which pixels in the original image should be displayed.
-  Returns:
-    NumPy array representing an RGB image with mask applied.
   """
-  t = Time()
-  result = rgb * np.dstack([mask, mask, mask])
-  np_info(result, "Mask RGB", t.elapsed())
-  return result
+  return rgb * np.dstack([mask, mask, mask])
 
 class Time:
   """
@@ -206,6 +195,17 @@ def patch_grid(ims, width=5, sub_sample=None, rand=False, save_name=None):
         plt.savefig(save_name)
     plt.show()
 
+def open_image_np(filename):
+  """
+  Open an image as an RGB NumPy array.
+  (accepted *.jpg, *.png, etc)
+  Args:
+    filename: Name of the image file.
+  returns:
+    A NumPy representing an RGB image.
+  """
+  image = Image.open(filename)
+  return pil_to_np_rgb(image)
 
 ######################################
 

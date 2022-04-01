@@ -1,4 +1,9 @@
-import image_slicer
+"""
+Name: slide
+Author: Chinedu A. Anene, Phd
+"""
+
+import image_slicer as ims
 import os
 import copy
 import pandas as pd
@@ -8,122 +13,164 @@ from PIL import Image
 from iwspp.flows.util import Time
 
 
-def get_num_tiles(path):
+
+class Tile:
   """
-  N tiles proportional to image size.
-  Args:
-    path: Image full path.
-  Returns:
-    N tiles.
+  Class for handling image tiles.
+  Note: Expects images (JPEG, PNG, etc)
   """
 
-  r_si, c_si = Image.open(path).size
+  def __init__(self, x, o, t=80, sa=False):
+      """
+      Slide class.
 
-  r_t_si = r_si * 10 // 1041
-  c_t_si = c_si * 10 // 1041
+      Parameters:
+          x: Input file path (image)
+          o: Output path
+          t: Content threshold
+          sa: Save all tiles (not recommended)
+      """
+      self.x = x
+      self.o = o
+      self.t = t
+      self.sa = sa
+      self.__loaded = 0
+      self.__tile = None
+      self.__image = None
+      self.__bn = os.path.basename(x[:-4])
+      self.__np = os.path.join(o, self.__bn, "selectedTile")
+      self.__np2 = os.path.join(o, self.__bn, "allTile")
+      self.__tab_out = pd.DataFrame()
 
-  n =  r_t_si * c_t_si
+  def __str__(self):
+      return "Slide class for holding and processing slides."
 
-  if n < 2:
-      n = 2
-  return int(n)
-
-def get_tiles_score_save(path, save_path, save_all=False, tp_threshold=80):
-    """
-    Obtain tissue rich slicers.
-    Score and create annotation tiles.
-    Args:
-      path: Image path.
-      save_path: Save to.
-      save_all: Optional slices (not recommended).
-      tp_threshold: Minimum tissue content.
-    Returns:
-      Save tiles and annotation.
-    """
-
-    base_n = os.path.basename(path[:-4])
-    n_path = os.path.join(save_path, base_n, "selectedTiles")
-    n_path2 = os.path.join(save_path, base_n, "allTiles")
-
-    if not os.path.exists(n_path):
-        os.makedirs(n_path)
-
-    tiles = image_slicer.slice(path, get_num_tiles(path), save=False)
-    s_tiles = list(copy.deepcopy(tiles))
+  def __repr__(self):
+      return "\n" + self.__str__()
 
 
-    l_tiles = list()
-    tile_name = []
-    s_score = []
-    s_color_factor = []
-    s_s_and_v_factor = []
-    s_quantity_factor = []
+  def __open(self):
+      """
+      Get image and the associated tiles.
+      Note : N is proportional to the image size
+      """
 
-    if save_all:
-        if not os.path.exists(n_path2):
-            os.makedirs(n_path2)
-        image_slicer.save_tiles(tiles, directory=n_path2,
-                                prefix=b_name + "_slice", format="JPEG")
+      if not os.path.exists(self.__np):
+          os.makedirs(self.__np)
 
-    for i in range(len(tiles)):
-        t_n = "0" + str(tiles[i].column) + "_0" + str(tiles[i].row)
-        pil_img = tiles[i].image
-        np_img = util.pil_to_np_rgb(pil_img)
-        tp = filter.tissue_percent(np_img)
+      try:
+          rs, cs = Image.open(self.x).size
+          rts = rs * 10 // 1041
+          cts = cs * 10 // 1041
+          self.__tile = int(rts * cts)
 
-        if tp >= tp_threshold:
-            l_tiles.append(tiles[i])
+      except FileNotFoundError:
+          print("Ensure you give the full path of the folder.")
 
-            # Score
-            score, color_factor, s_and_v_factor, quantity_factor = stain.score_tile(np_img, tp)
-            tile_name.append(base_n + "_slice_0" + str(tiles[i].column) + "_0" + str(tiles[i].row) + ".jpg")
-            s_score.append(score)
-            s_color_factor.append(color_factor)
-            s_s_and_v_factor.append(s_and_v_factor)
-            s_quantity_factor.append(quantity_factor)
+      if self.__tile < 2:
+          self.__tile = 2
 
-            # Annotate
-            pil_img_exp = ImageOps.expand(pil_img, border=2, fill="green")
-            draw = ImageDraw.Draw(pil_img_exp)
-            draw.text((0, 0), t_n, fill="green")
-            s_tiles[i].image = pil_img_exp
+      self.__image = ims.slice(self.x, self.__tile, save=False)
 
-        else:
-            pil_img_exp = ImageOps.expand(pil_img, border=2, fill="white")
-            draw = ImageDraw.Draw(pil_img_exp)
-            draw.text((0, 0), t_n, fill="white")
-            s_tiles[i].image = pil_img_exp
+      self.__loaded = 1
+      return
 
-    # Join
-    s_tiles = image_slicer.join(s_tiles)
-    s_tiles = s_tiles.convert("RGB")
-    s_tiles.save(fp=os.path.join(n_path, "annotation.jpg"))
 
-    # Table
-    stats_s_tiles = pd.DataFrame()
-    stats_s_tiles["Name"] = tile_name
-    stats_s_tiles["score"] = s_score
-    stats_s_tiles["color_factor"] = s_color_factor
-    stats_s_tiles["s_and_v_factor"] = s_s_and_v_factor
-    stats_s_tiles["quantity_factor"] = s_quantity_factor
-    stats_s_tiles["source"] = base_n
+  def __gettile(self):
+      """
+      Obtain content rich slices and create annotation tile.
 
-    stats_s_tiles.to_csv(os.path.join(n_path, "annotation.csv"), index=False)
+      """
 
-    # Save
-    image_slicer.save_tiles(l_tiles, directory=n_path,
-                            prefix=b_name + "_slice", format="JPEG")
-    return
+      s_tiles = list(copy.deepcopy(self.__image))
 
-def multi_get_tiles_score_save(path, sl_format, tp_threshold=80):
+      l_tiles = list()
+      tile_name = []
+      s_score = []
+      s_color_factor = []
+      s_s_and_v_factor = []
+      s_quantity_factor = []
+
+      if self.sa:
+          # Save everything no checks
+          if not os.path.exists(self.__np2):
+              os.makedirs(self.__np2)
+          ims.save_tiles(self.__image, directory=self.__np2,
+                         prefix=self.__bn + "_slice", format="JPEG")
+
+      for i in range(len(self.__image)):
+          t_n = "0" + str(self.__image[i].column) + "_0" + str(self.__image[i].row)
+          pil_img = self.__image[i].image
+          np_img = util.pil_to_np_rgb(pil_img)
+          tp = filter.tissue_percent(np_img)
+
+          if tp >= self.t:
+              l_tiles.append(self.__image[i])
+
+              # Score
+              score, color_factor, s_and_v_factor, quantity_factor = stain.score_tile(np_img, tp)
+              tile_name.append(self.__bn + "_slice_0" + str(self.__image[i].column) + "_0"
+                               + str(self.__image[i].row) + ".jpg")
+
+              s_score.append(score)
+              s_color_factor.append(color_factor)
+              s_s_and_v_factor.append(s_and_v_factor)
+              s_quantity_factor.append(quantity_factor)
+
+              # Annotate
+              pil_img_exp = ImageOps.expand(pil_img, border=2, fill="green")
+              draw = ImageDraw.Draw(pil_img_exp)
+              draw.text((0, 0), t_n, fill="green")
+              s_tiles[i].image = pil_img_exp
+
+          else:
+              pil_img_exp = ImageOps.expand(pil_img, border=2, fill="white")
+              draw = ImageDraw.Draw(pil_img_exp)
+              draw.text((0, 0), t_n, fill="white")
+              s_tiles[i].image = pil_img_exp
+
+      # Join
+      s_tiles = ims.join(s_tiles)
+      s_tiles = s_tiles.convert("RGB")
+      s_tiles.save(fp=os.path.join(self.__np, "annotation.jpg"))
+
+      # Table
+      self.__tab_out["Name"] = tile_name
+      self.__tab_out["score"] = s_score
+      self.__tab_out["color_factor"] = s_color_factor
+      self.__tab_out["s_and_v_factor"] = s_s_and_v_factor
+      self.__tab_out["quantity_factor"] = s_quantity_factor
+      self.__tab_out["source"] = self.__np
+
+      self.__tab_out.to_csv(os.path.join(self.__np, "annotation.csv"), index=False)
+
+      # Save
+      ims.save_tiles(l_tiles, directory=self.__np,
+                              prefix=self.__bn + "_slice", format="JPEG")
+      return
+
+
+
+  def fit(self):
+      """
+      Fit the class.
+      """
+      print("Processing {}".format(self.__bn))
+      self.__open()
+      self.__gettile()
+      return
+
+
+def multi_image_to_tile(path, sf=".png", threshold=80, sa=False):
     """
     Apply a set of filters to image folder
 
-    :param path: Image folder.
-    :param sl_format: The file format of the images.
-    :param tp_threshold: The percentage tissue quantity to retain.
-    :return:
-    Tiles to folder
+    Args:
+        path: Image folder
+        sf: The file format of the images
+        threshold: The percentage tissue quantity to retain
+        sa: Save all tiles
+
     """
     timer = Time()
 
@@ -134,16 +181,15 @@ def multi_get_tiles_score_save(path, sl_format, tp_threshold=80):
         os.mkdir(new_path)
         os.chdir(os.path.join(os.getcwd(), new_path))
 
-    print("Tilling {} images".format(len(files)))
+    print("Processing {} images".format(len(files)))
 
-    save_it = os.getcwd()
     for i in files:
-        if i.endswith(sl_format):
+        if i.endswith(sf):
             sl = str(os.path.join(path, i))
-            get_tiles_score_save(sl, save_it, tp_threshold=tp_threshold)
+            img = Tile(x=sl, o=os.getcwd(), t=threshold, sa=sa)
+            img.fit()
     timer.elapsed_display()
     return path
 
-
-
-
+# Enforce specific dimension for the tiles
+# multi_image_to_tile(path="/Users/chineduanene/Documents/GitHub/iwspp/data")

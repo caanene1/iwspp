@@ -12,6 +12,8 @@ iwspp/Normalize/Reinhard.py
 iwspp/Normalize/Vahadane.py
 iwspp/Normalize/__init__.py
 iwspp/flows/__init__.py
+iwspp/flows/cache.py
+iwspp/flows/classtiles.py
 iwspp/flows/filter.py
 iwspp/flows/movesf.py
 iwspp/flows/slide.py

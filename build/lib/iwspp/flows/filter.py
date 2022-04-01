@@ -2,7 +2,8 @@ import numpy as np
 import pandas as pd
 import os
 import skimage.color as sk_color
-from iwspp.flows import util, slide
+from PIL import Image
+from iwspp.flows import util
 
 
 def filter_grays(np_img, tolerance=15, output_type="bool"):
@@ -15,8 +16,6 @@ def filter_grays(np_img, tolerance=15, output_type="bool"):
   Returns:
     NumPy array representing a mask where pixels with similar red, green, and blue values have been masked out.
   """
-  t = util.Time()
-  (h, w, c) = np_img.shape
 
   rgb = np_img.astype(np.int)
   rg_diff = abs(rgb[:, :, 0] - rgb[:, :, 1]) <= tolerance
@@ -26,13 +25,11 @@ def filter_grays(np_img, tolerance=15, output_type="bool"):
 
   if output_type == "bool":
     pass
+
   elif output_type == "float":
     result = float(result)
-    # result = result.astype(float)
   else:
     result = int(result)
-    #result = result.astype("uint8") * 255
-  util.np_info(result, "Filter Grays", t.elapsed())
   return result
 
 
@@ -61,7 +58,7 @@ def apply_image_filters(path, fps):
   Returns:
     Mask percentage
   """
-  img = slide.open_image(path)
+  img = Image.open(path)
   rgb = util.pil_to_np_rgb(img)
   mask_not_gray = filter_grays(rgb)
   rgb_not_gray = util.mask_rgb(rgb, mask_not_gray)
@@ -74,17 +71,10 @@ def apply_image_filters(path, fps):
 
 
 def tissue_percent(np_img):
-  """
-  Determine the percentage of a NumPy array that is tissue (not masked).
-  Args:
-    np_img: Image as a NumPy array.
-  Returns:
-    The percentage of the NumPy array that is tissue.
-  """
   return 100 - mask_percent(np_img)
 
 
-def filter_rgb_to_hsv(np_img, display_np_info=True):
+def filter_rgb_to_hsv(np_img, display_np_info=False):
   """
   Filter RGB channels to HSV (Hue, Saturation, Value).
   Args:

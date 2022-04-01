@@ -1,8 +1,9 @@
-import shutil, os
+import shutil
+import os
 import pandas as pd
 
 
-def move_single_folder(o_path, n_path, target="selectedTiles", f_format=".jpg",
+def move_single_folder(o_path, n_path, target="non", f_format=".jpg",
                        annotation="annotation.csv"):
     """
     Merge sub folders into a single folder.
@@ -26,20 +27,79 @@ def move_single_folder(o_path, n_path, target="selectedTiles", f_format=".jpg",
 
 
     for i in folders:
-        sub_folder = os.path.join(o_path, i, target)
+
+        if target == "non":
+            sub_folder = os.path.join(o_path, i)
+
+        else:
+           sub_folder = os.path.join(o_path, i, target)
+
         an_note.append(pd.read_csv(os.path.join(sub_folder, annotation)))
 
         files = [t for t in os.listdir(sub_folder) if t.endswith(f_format)]
         files = [t for t in files if not t.startswith(annotation[:-4])]
 
         for z in files:
-            shutil.move(os.path.join(sub_folder, z),
-                        os.path.join(n_path, i + "_" + z))
+            try:
+                shutil.move(os.path.join(sub_folder, z), os.path.join(n_path, z))
+
+            except FileNotFoundError:
+                print("{} file has issue and was not save".format(sub_folder + z))
 
     an_note = pd.concat(an_note, axis=0)
     an_note = an_note.reset_index()
 
-    an_note.to_csv(os.path.join(n_path, annotation), index=False)
+    try:
+        an_note.to_csv(os.path.join(n_path, annotation), index=False)
+    except FileNotFoundError:
+        print("{} file has issue and was not saved".format(n_path + annotation))
+
+    return
+
+
+def add_annotation_file(source, meta="meta.csv", pattern=".jpg"):
+    """
+    Move folders with specific pattern to a new destination.
+
+    Args:
+        source: The path to the source folder
+        meta: The name of the file to add
+        pattern: The file extension to target for the meta file
+
+    """
+
+    base_file = pd.DataFrame(columns=['Tumour', 'nuclei','immune','irregular'])
+    folders = [f for f in os.listdir(source)]
+
+    for i in folders:
+        files = [f for f in os.listdir(os.path.join(source, i)) if f.endswith(pattern)]
+        out_file = pd.DataFrame()
+        out_file["Name"] = files
+        out_file = pd.concat([out_file, base_file], axis=1)
+        out_file.to_csv(os.path.join(source, i, meta), index=False)
+
+    return
+
+
+def move_by_pattern(source, destination, pattern="-DX"):
+    """
+    Move folders with specific pattern to a new destination.
+
+    Args:
+        source: The path to the source folder
+        destination: The path tp the destination folder (auto created if needed)
+        pattern: The matching pattern
+
+    """
+
+    if not os.path.exists(destination):
+        os.makedirs(destination)
+
+    folders = [f for f in os.listdir(source) if pattern in f]
+
+    for i in folders:
+        shutil.move(os.path.join(source, i), os.path.join(destination, i))
+
     return
 
 
@@ -60,4 +120,10 @@ def clean_folder(path, target):
 
     return
 
+
+## Usage
+# add_annotation_file(source = "/Volumes/HDD1/Research/SCC/hypoxia/USET")
+# op = "/Volumes/HDD1/Research/SCC/hypoxia/USET"
+# np = "/Volumes/HDD1/Research/SCC/hypoxia/merged"
+# move_single_folder(o_path=op, n_path=np, target="non", annotation="meta.csv")
 

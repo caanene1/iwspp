@@ -9,31 +9,33 @@ import os
 import iwspp.flows.util as ut
 
 
-def get_stain_matrix(I, beta=0.15, alpha=1):
+def get_stain_matrix(x, beta=0.15, alpha=1):
     """
     Get stain matrix (2x3)
-    :param I:
-    :param beta:
-    :param alpha:
-    :return:
+
+    Args:
+        x: Image to process
+        beta: first threshold
+        alpha: Second threshold
     """
-    OD = ut.RGB_to_OD(I).reshape((-1, 3))
-    OD = (OD[(OD > beta).any(axis=1), :])
-    _, V = np.linalg.eigh(np.cov(OD, rowvar=False))
-    V = V[:, [2, 1]]
-    if V[0, 0] < 0: V[:, 0] *= -1
-    if V[0, 1] < 0: V[:, 1] *= -1
-    That = np.dot(OD, V)
-    phi = np.arctan2(That[:, 1], That[:, 0])
-    minPhi = np.percentile(phi, alpha)
-    maxPhi = np.percentile(phi, 100 - alpha)
-    v1 = np.dot(V, np.array([np.cos(minPhi), np.sin(minPhi)]))
-    v2 = np.dot(V, np.array([np.cos(maxPhi), np.sin(maxPhi)]))
+
+    od = ut.convert_rgb_od(x, t="od").reshape((-1, 3))
+    od = (od[(od > beta).any(axis=1), :])
+    _, vv = np.linalg.eigh(np.cov(od, rowvar=False))
+    vv = vv[:, [2, 1]]
+    if vv[0, 0] < 0: vv[:, 0] *= -1
+    if vv[0, 1] < 0: vv[:, 1] *= -1
+    that = np.dot(od, vv)
+    phi = np.arctan2(that[:, 1], that[:, 0])
+    min_phi = np.percentile(phi, alpha)
+    max_phi = np.percentile(phi, 100 - alpha)
+    v1 = np.dot(vv, np.array([np.cos(min_phi), np.sin(min_phi)]))
+    v2 = np.dot(vv, np.array([np.cos(max_phi), np.sin(max_phi)]))
     if v1[0] > v2[0]:
-        HE = np.array([v1, v2])
+        he = np.array([v1, v2])
     else:
-        HE = np.array([v2, v1])
-    return ut.normalize_rows(HE)
+        he = np.array([v2, v1])
+    return ut.normalize_rows(he)
 
 class Normalizer(object):
     """
@@ -50,35 +52,35 @@ class Normalizer(object):
         self.target_concentrations = ut.get_concentrations(target, self.stain_matrix_target)
 
     def target_stains(self):
-        return ut.OD_to_RGB(self.stain_matrix_target)
+        return ut.convert_rgb_od(self.stain_matrix_target, t="rgb")
 
-    def transform(self, I):
-        I = ut.standardize_brightness(I)
-        stain_matrix_source = get_stain_matrix(I)
-        source_concentrations = ut.get_concentrations(I, stain_matrix_source)
-        maxC_source = np.percentile(source_concentrations, 99, axis=0).reshape((1, 2))
-        maxC_target = np.percentile(self.target_concentrations, 99, axis=0).reshape((1, 2))
-        source_concentrations *= (maxC_target / maxC_source)
-        return (255 * np.exp(-1 * np.dot(source_concentrations, self.stain_matrix_target).reshape(I.shape))).astype(
+    def transform(self, x):
+        x = ut.standardize_brightness(x)
+        stain_matrix_source = get_stain_matrix(x)
+        source_concentrations = ut.get_concentrations(x, stain_matrix_source)
+        max_c_source = np.percentile(source_concentrations, 99, axis=0).reshape((1, 2))
+        max_c_target = np.percentile(self.target_concentrations, 99, axis=0).reshape((1, 2))
+        source_concentrations *= (max_c_target / max_c_source)
+        return (255 * np.exp(-1 * np.dot(source_concentrations, self.stain_matrix_target).reshape(x.shape))).astype(
             np.uint8)
 
-    def hematoxylin(self, I):
-        I = ut.standardize_brightness(I)
-        h, w, c = I.shape
-        stain_matrix_source = get_stain_matrix(I)
-        source_concentrations = ut.get_concentrations(I, stain_matrix_source)
-        H = source_concentrations[:, 0].reshape(h, w)
-        H = np.exp(-1 * H)
-        return H
+    def hematoxylin(self, x):
+        x = ut.standardize_brightness(x)
+        h, w, c = x.shape
+        stain_matrix_source = get_stain_matrix(x)
+        source_concentrations = ut.get_concentrations(x, stain_matrix_source)
+        hh = source_concentrations[:, 0].reshape(h, w)
+        hh = np.exp(-1 * hh)
+        return hh
 
-    def Eosin(self, I):
-        I = ut.standardize_brightness(I)
-        h, w, c = I.shape
-        stain_matrix_source = get_stain_matrix(I)
-        source_concentrations = ut.get_concentrations(I, stain_matrix_source)
-        H = source_concentrations[:, 1].reshape(h, w)
-        H = np.exp(-1 * H)
-        return H
+    def Eosin(self, x):
+        x = ut.standardize_brightness(x)
+        h, w, c = x.shape
+        stain_matrix_source = get_stain_matrix(x)
+        source_concentrations = ut.get_concentrations(x, stain_matrix_source)
+        hh = source_concentrations[:, 1].reshape(h, w)
+        hh = np.exp(-1 * hh)
+        return hh
 
 def multi_apply_normalisation_to_images(path, nn_path, sl_format):
   """
@@ -98,7 +100,6 @@ def multi_apply_normalisation_to_images(path, nn_path, sl_format):
   sd_class.fit(sd)
 
   n_path = os.path.join(path, "normalised")
-  # n_path1 = os.path.join(path, "haematoxylin")
   print(n_path)
 
   files = [f for f in os.listdir(path) if f.endswith(sl_format)]
@@ -106,18 +107,12 @@ def multi_apply_normalisation_to_images(path, nn_path, sl_format):
 
   if not os.path.exists(n_path):
     os.makedirs(n_path)
-    # os.makedirs(n_path1)
 
   for i in files:
     sl = ut.read_image(os.path.join(path, i))
     sl1 = sd_class.transform(sl)
-    # sl2 = sd_class.hematoxylin(sl)
-
     sl1 = ut.np_to_pil(sl1)
-    # sl2 = ut.np_to_pil(sl2)
-
     sl1.save(os.path.join(n_path, i))
-    # sl2.save(os.path.join(n_path1, i))
 
   timer.elapsed_display()
   return

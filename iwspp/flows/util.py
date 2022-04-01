@@ -1,5 +1,6 @@
 from __future__ import division
 import datetime
+import sys
 import numpy as np
 from PIL import Image
 import cv2 as cv
@@ -12,15 +13,8 @@ def pil_to_np_rgb(img):
   """
   Convert a PIL Image to a NumPy array.
   As: RGB PIL (w, h) -> NumPy (h, w, 3).
-  Args:
-    img: The PIL Image.
-  Returns:
-    The rgb NumPy array.
   """
-  t = Time()
-  rgb = np.asarray(img)
-  np_info(rgb, "RGB", t.elapsed())
-  return rgb
+  return np.asarray(img)
 
 def np_to_pil(np_img):
   """
@@ -54,13 +48,12 @@ def np_info(np_arr, name=None, elapsed=None):
   if ADDITIONAL_NP_STATS is False:
     print("%-20s | Time: %-14s  Type: %-7s Shape: %s" % (name, str(elapsed), np_arr.dtype, np_arr.shape))
   else:
-    # np_arr = np.asarray(np_arr)
-    max = np_arr.max()
-    min = np_arr.min()
+    mas = np_arr.max()
+    mis = np_arr.min()
     mean = np_arr.mean()
     is_binary = "T" if (np.unique(np_arr).size == 2) else "F"
     print("%-20s | Time: %-14s Min: %6.2f  Max: %6.2f  Mean: %6.2f  Binary: %s  Type: %-7s Shape: %s" % (
-      name, str(elapsed), min, max, mean, is_binary, np_arr.dtype, np_arr.shape))
+      name, str(elapsed), mas, mis, mean, is_binary, np_arr.dtype, np_arr.shape))
   return
 
 
@@ -82,13 +75,8 @@ def mask_rgb(rgb, mask):
   Args:
     rgb: RGB image as a NumPy array.
     mask: An image mask to determine which pixels in the original image should be displayed.
-  Returns:
-    NumPy array representing an RGB image with mask applied.
   """
-  t = Time()
-  result = rgb * np.dstack([mask, mask, mask])
-  np_info(result, "Mask RGB", t.elapsed())
-  return result
+  return rgb * np.dstack([mask, mask, mask])
 
 class Time:
   """
@@ -108,10 +96,6 @@ class Time:
     return time_elapsed
 
 
-
-##########################################
-## Integrating from github, remove redundancies
-
 def read_image(path):
     """
     Read an image to RGB uint8
@@ -123,20 +107,21 @@ def read_image(path):
     return im
 
 
-def show_colors(C):
+def show_colors(c):
     """
     Shows rows of C as colors (RGB)
-    :param C:
+    :param c:
     :return:
     """
-    n = C.shape[0]
+    n = c.shape[0]
     for i in range(n):
-        if C[i].max() > 1.0:
-            plt.plot([0, 1], [n - 1 - i, n - 1 - i], c=C[i] / 255, linewidth=20)
+        if c[i].max() > 1.0:
+            plt.plot([0, 1], [n - 1 - i, n - 1 - i], c=c[i] / 255, linewidth=20)
         else:
-            plt.plot([0, 1], [n - 1 - i, n - 1 - i], c=C[i], linewidth=20)
+            plt.plot([0, 1], [n - 1 - i, n - 1 - i], c=c[i], linewidth=20)
         plt.axis('off')
         plt.axis([0, 1, -1, n])
+    return
 
 
 def show(image, now=True, fig_size=(10, 10)):
@@ -149,13 +134,16 @@ def show(image, now=True, fig_size=(10, 10)):
     :return:
     """
     image = image.astype(np.float32)
-    m, M = image.min(), image.max()
-    if fig_size != None:
+    m, mm = image.min(), image.max()
+
+    if fig_size is not None:
         plt.rcParams['figure.figsize'] = (fig_size[0], fig_size[1])
-    plt.imshow((image - m) / (M - m), cmap='gray')
+    plt.imshow((image - m) / (mm - m), cmap='gray')
     plt.axis('off')
-    if now == True:
+
+    if now:
         plt.show()
+    return
 
 
 def build_stack(tup):
@@ -164,14 +152,18 @@ def build_stack(tup):
     :param tup:
     :return:
     """
-    N = len(tup)
+
+    nn = len(tup)
     if len(tup[0].shape) == 3:
         h, w, c = tup[0].shape
-        stack = np.zeros((N, h, w, c))
-    if len(tup[0].shape) == 2:
+        stack = np.zeros((nn, h, w, c))
+    elif len(tup[0].shape) == 2:
         h, w = tup[0].shape
-        stack = np.zeros((N, h, w))
-    for i in range(N):
+        stack = np.zeros((nn, h, w))
+    else:
+        sys.exit("The shape of the tuple is not recognised.")
+
+    for i in range(nn):
         stack[i] = tup[i]
     return stack
 
@@ -179,33 +171,44 @@ def build_stack(tup):
 def patch_grid(ims, width=5, sub_sample=None, rand=False, save_name=None):
     """
     Display a grid of patches
-    :param ims:
-    :param width:
-    :param sub_sample:
-    :param rand:
-    :return:
+    Args:
+        ims: Image to patch
+        width: The width of the patch
+        sub_sample: Option to sub sample the patches
+        rand: Should the output be random
+        save_name: The name to save it
     """
-    N0 = np.shape(ims)[0]
-    if sub_sample == None:
-        N = N0
+
+    n0 = np.shape(ims)[0]
+
+    if sub_sample is None:
+        nn = n0
         stack = ims
-    elif sub_sample != None and rand == False:
-        N = sub_sample
-        stack = ims[:N]
-    elif sub_sample != None and rand == True:
-        N = sub_sample
-        idx = np.random.choice(range(N), sub_sample, replace=False)
+
+    elif sub_sample is not None and rand == False:
+        nn = sub_sample
+        stack = ims[:nn]
+
+    elif sub_sample is not None and rand == True:
+        nn = sub_sample
+        idx = np.random.choice(range(nn), sub_sample, replace=False)
         stack = ims[idx]
-    height = np.ceil(float(N) / width).astype(np.uint16)
-    plt.rcParams['figure.figsize'] = (18, (18 / width) * height)
+    else:
+        sys.exit("Please, define sub_sample and rand")
+
+    height = np.ceil(float(nn) / width).astype(np.uint16)
+    plt.rcParams['figure.figs'] = (18, (18 / width) * height)
     plt.figure()
-    for i in range(N):
+
+    for i in range(nn):
         plt.subplot(height, width, i + 1)
         im = stack[i]
         show(im, now=False, fig_size=None)
-    if save_name != None:
+
+    if save_name is not None:
         plt.savefig(save_name)
     plt.show()
+    return
 
 def open_image_np(filename):
   """
@@ -213,73 +216,74 @@ def open_image_np(filename):
   (accepted *.jpg, *.png, etc)
   Args:
     filename: Name of the image file.
-  returns:
-    A NumPy representing an RGB image.
   """
   image = Image.open(filename)
   return pil_to_np_rgb(image)
 
-######################################
 
-def standardize_brightness(I):
+def standardize_brightness(x):
     """
-
-    :param I:
-    :return:
+    Normalise the brightness of images.
+    Args:
+        x: Image to normalise
     """
-    p = np.percentile(I, 90)
-    return np.clip(I * 255.0 / p, 0, 255).astype(np.uint8)
+    p = np.percentile(x, 90)
+    return np.clip(x * 255.0 / p, 0, 255).astype(np.uint8)
 
 
-def remove_zeros(I):
+def remove_zeros(x):
     """
     Remove zeros, replace with 1's.
-    :param I: uint8 array
-    :return:
+
+    Args:
+        x: Uint8 array to replace on
     """
-    mask = (I == 0)
-    I[mask] = 1
-    return I
+    mask = (x == 0)
+    x[mask] = 1
+    return x
 
 
-def RGB_to_OD(I):
+def convert_rgb_od(x, t="od"):
     """
-    Convert from RGB to optical density
-    :param I:
-    :return:
+    Inter-convert between RGB and optical density
+    Args:
+        x: Image to convert
+        t: Conversion type
     """
-    I = remove_zeros(I)
-    return -1 * np.log(I / 255)
+    if t == "od":
+        x = remove_zeros(x)
+        out = -1 * np.log(x / 255)
+
+    elif t == "rgb":
+        out = (255 * np.exp(-1 * x)).astype(np.uint8)
+    else:
+        print("t must be one of od or rgb")
+        out = 0
+
+    return out
 
 
-def OD_to_RGB(OD):
-    """
-    Convert from optical density to RGB
-    :param OD:
-    :return:
-    """
-    return (255 * np.exp(-1 * OD)).astype(np.uint8)
-
-
-def normalize_rows(A):
+def normalize_rows(x):
     """
     Normalize rows of an array
-    :param A:
-    :return:
+
+    Args:
+        x: Array to normalise
     """
-    return A / np.linalg.norm(A, axis=1)[:, None]
+    return x / np.linalg.norm(x, axis=1)[:, None]
 
 
-def notwhite_mask(I, thresh=0.8):
+def not_white_mask(x, thresh=0.8):
     """
     Get a binary mask where true denotes 'not white'
-    :param I:
-    :param thresh:
-    :return:
+
+    Args:
+        x: Image to mask
+        thresh: The mask threshold to use
     """
-    I_LAB = cv.cvtColor(I, cv.COLOR_RGB2LAB)
-    L = I_LAB[:, :, 0] / 255.0
-    return (L < thresh)
+    i_lab = cv.cvtColor(x, cv.COLOR_RGB2LAB)
+    ll = i_lab[:, :, 0] / 255.0
+    return ll < thresh
 
 
 def sign(x):
@@ -296,13 +300,15 @@ def sign(x):
         return 0
 
 
-def get_concentrations(I, stain_matrix, lamda=0.01):
+def get_concentrations(x, stain_matrix, lamda=0.01):
     """
     Get concentrations, a npix x 2 matrix
-    :param I:
-    :param stain_matrix: a 2x3 stain matrix
-    :return:
+
+    Args:
+        x: Image to convert
+        stain_matrix: a 2x3 stain matrix
+        lamda: Factor
     """
-    OD = RGB_to_OD(I).reshape((-1, 3))
-    return spams.lasso(OD.T, D=stain_matrix.T, mode=2, lambda1=lamda, pos=True).toarray().T
+    od = convert_rgb_od(x, t="od").reshape((-1, 3))
+    return spams.lasso(od.T, D=stain_matrix.T, mode=2, lambda1=lamda, pos=True).toarray().T
 

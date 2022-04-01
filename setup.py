@@ -8,7 +8,7 @@ with open("requirements.txt") as rq:
 
 setuptools.setup(
     name="iwspp",
-    version="1.0.1",
+    version="1.0.3",
     scripts=["bin/iwspp"],
     author="Chinedu A. Anene",
     author_email="caanenedr@outlook.com",

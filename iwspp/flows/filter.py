@@ -16,8 +16,6 @@ def filter_grays(np_img, tolerance=15, output_type="bool"):
   Returns:
     NumPy array representing a mask where pixels with similar red, green, and blue values have been masked out.
   """
-  t = util.Time()
-  (h, w, c) = np_img.shape
 
   rgb = np_img.astype(np.int)
   rg_diff = abs(rgb[:, :, 0] - rgb[:, :, 1]) <= tolerance
@@ -27,13 +25,11 @@ def filter_grays(np_img, tolerance=15, output_type="bool"):
 
   if output_type == "bool":
     pass
+
   elif output_type == "float":
     result = float(result)
-    # result = result.astype(float)
   else:
     result = int(result)
-    #result = result.astype("uint8") * 255
-  util.np_info(result, "Filter Grays", t.elapsed())
   return result
 
 
@@ -75,17 +71,10 @@ def apply_image_filters(path, fps):
 
 
 def tissue_percent(np_img):
-  """
-  Determine the percentage of a NumPy array that is tissue (not masked).
-  Args:
-    np_img: Image as a NumPy array.
-  Returns:
-    The percentage of the NumPy array that is tissue.
-  """
   return 100 - mask_percent(np_img)
 
 
-def filter_rgb_to_hsv(np_img, display_np_info=True):
+def filter_rgb_to_hsv(np_img, display_np_info=False):
   """
   Filter RGB channels to HSV (Hue, Saturation, Value).
   Args:
@@ -95,9 +84,9 @@ def filter_rgb_to_hsv(np_img, display_np_info=True):
     Image as NumPy array in HSV representation.
   """
 
-  if display_np_info:
-    t = util.Time()
+  t = util.Time()
   hsv = sk_color.rgb2hsv(np_img)
+
   if display_np_info:
     util.np_info(hsv, "RGB to HSV", t.elapsed())
   return hsv
@@ -117,8 +106,8 @@ def filter_hsv_to_h(hsv, output_type="int", display_np_info=True):
   Returns:
     Hue values (float or int) as a 1-dimensional NumPy array.
   """
-  if display_np_info:
-    t = util.Time()
+  t = util.Time()
+
   h = hsv[:, :, 0]
   h = h.flatten()
   if output_type == "int":
