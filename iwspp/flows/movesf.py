@@ -59,7 +59,7 @@ def move_single_folder(o_path, n_path, target="non", f_format=".jpg",
 
 def add_annotation_file(source, meta="meta.csv", pattern=".jpg"):
     """
-    Move folders with specific pattern to a new destination.
+    Add annotation file to the folders.
 
     Args:
         source: The path to the source folder
@@ -68,7 +68,7 @@ def add_annotation_file(source, meta="meta.csv", pattern=".jpg"):
 
     """
 
-    base_file = pd.DataFrame(columns=['Tumour', 'nuclei','immune','irregular'])
+    base_file = pd.DataFrame(columns=['Use', 'Tumour', 'nuclei_prop','immune_cells','white_prop', 'comment'])
     folders = [f for f in os.listdir(source)]
 
     for i in folders:
